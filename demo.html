@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App DEMO - Cuaca Indah (Test Mode)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .demo-banner {
+            background: #ffd700;
+            color: #333;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-banner i {
+            margin-right: 8px;
+        }
+
+        .demo-note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            color: #1976d2;
+        }
+
+        .api-key-setup {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .api-key-setup h3 {
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+
+        .api-key-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+            margin: 10px auto;
+            border: 2px solid #ff9800;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .api-setup-btn {
+            background: #ff9800;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .api-setup-btn:hover {
+            background: #e65100;
+        }
+
+        .setup-link {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .setup-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class weather-app">
+            <!-- Demo Banner -->
+            <div class="demo-banner">
+                <i class="fas fa-flask"></i> MODE DEMO - Ini adalah versi demo dengan data contoh
+            </div>
+
+            <!-- API Key Setup -->
+            <div class="api-key-setup">
+                <h3>🔑 Setup API Key untuk Mode Nyata</h3>
+                <p>Aplikasi ini saat ini menggunakan data demo. Untuk menggunakan data cuaca real-time:</p>
+                <ol style="text-align: left; display: inline-block; margin: 15px 0;">
+                    <li>Daftar gratis di <a href="https://openweathermap.org/api" target="_blank" class="setup-link">OpenWeatherMap</a></li>
+                    <li>Copy API key Anda</li>
+                    <li>Paste di sini:</li>
+                </ol>
+                <input type="text" id="apiKeyInput" class="api-key-input" placeholder="Paste API key Anda di sini...">
+                <br>
+                <button class="api-setup-btn" onclick="setupAPIKey()">Aktifkan API Key</button>
+                <p style="font-size: 0.9em; margin-top: 10px;">Atau buka file <strong>script.js</strong> dan ganti API_KEY dengan key Anda</p>
+            </div>
+
+            <!-- Demo Note -->
+            <div class="demo-note">
+                <i class="fas fa-info-circle"></i>
+                <strong>Info Demo:</strong> Data di bawah adalah contoh. Gunakan search box untuk mencoba mencari kota (akan tetap menampilkan data demo hingga API key diatur).
+            </div>
+
+            <!-- Header -->
+            <div class="header">
+                <h1><i class="fas fa-cloud-sun"></i> Weather App</h1>
+                <p class="tagline">Pantau Cuaca Anda Setiap Hari</p>
+            </div>
+
+            <!-- Search Box -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Cari kota... (DEMO MODE - Coba: Jakarta, Bali, Surabaya)"
+                        class="search-input"
+                    >
+                    <button id="searchBtn" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="suggestionsBox" class="suggestions-box"></div>
+            </div>
+
+            <!-- Main Weather Display -->
+            <div class="weather-card">
+                <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Memuat data cuaca...</p>
+                </div>
+
+                <div id="weatherContent" style="display: block;">
+                    <div class="current-weather">
+                        <div class="city-info">
+                            <h2 id="cityName" class="city-name">Jakarta, Indonesia</h2>
+                            <p id="currentDate" class="date"></p>
+                        </div>
+
+                        <div class="weather-main">
+                            <div class="temperature-section">
+                                <img id="weatherIcon" src="https://openweathermap.org/img/wn/04d@4x.png" alt="Weather Icon" class="weather-icon-large">
+                                <div class="temp-info">
+                                    <div id="temperature" class="temperature">28°C</div>
+                                    <div id="weatherDescription" class="description">Berawan</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="weather-details">
+                            <div class="detail-card">
+                                <i class="fas fa-tint"></i>
+                                <div>
+                                    <p class="detail-label">Kelembaban</p>
+                                    <p id="humidity" class="detail-value">72%</p>
+                                </div>
+                            </div>
+
+                            <div class="detail-card">
+                                <i class="fas fa-wind"></i>
+                                <div>
+                                    <p class="detail-label">Kecepatan Angin</p>
+                                    <p id="windSpeed" class="detail-value">4.5 m/s</p>
+                                </div>
+                            </div>
+
+                            <div class="detail-card">
+                                <i class="fas fa-eye"></i>
+                                <div>
+                                    <p class="detail-label">Visibilitas</p>
+                                    <p id="visibility" class="detail-value">10 km</p>
+                                </div>
+                            </div>
+
+                            <div class="detail-card">
+                                <i class="fas fa-compress-alt"></i>
+                                <div>
+                                    <p class="detail-label">Tekanan</p>
+                                    <p id="pressure" class="detail-value">1013 mb</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="extra-info">
+                            <div class="info-box">
+                                <i class="fas fa-thermometer-half"></i>
+                                <div>
+                                    <span class="info-label">Terasa Seperti</span>
+                                    <span id="feelsLike" class="info-value">27°C</span>
+                                </div>
+                            </div>
+                            <div class="info-box">
+                                <i class="fas fa-arrow-up"></i>
+                                <div>
+                                    <span class="info-label">Suhu Maksimal</span>
+                                    <span id="maxTemp" class="info-value">32°C</span>
+                                </div>
+                            </div>
+                            <div class="info-box">
+                                <i class="fas fa-arrow-down"></i>
+                                <div>
+                                    <span class="info-label">Suhu Minimal</span>
+                                    <span id="minTemp" class="info-value">24°C</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5-Day Forecast -->
+                    <div class="forecast-section">
+                        <h3>Prakiraan 5 Hari</h3>
+                        <div id="forecastContainer" class="forecast-container">
+                            <!-- Demo forecast -->
+                            <div class="forecast-card">
+                                <div class="forecast-day">Senin</div>
+                                <div class="forecast-date" style="color: #999; font-size: 0.85em; margin-bottom: 8px;">Mei 26</div>
+                                <img src="https://openweathermap.org/img/wn/04d@2x.png" alt="Weather" class="forecast-icon">
+                                <div class="forecast-temp">27°C</div>
+                                <div class="forecast-desc">Berawan</div>
+                                <div class="forecast-temp-range"><i class="fas fa-arrow-up"></i> 30° <i class="fas fa-arrow-down"></i> 24°</div>
+                            </div>
+                            <div class="forecast-card">
+                                <div class="forecast-day">Selasa</div>
+                                <div class="forecast-date" style="color: #999; font-size: 0.85em; margin-bottom: 8px;">Mei 27</div>
+                                <img src="https://openweathermap.org/img/wn/10d@2x.png" alt="Weather" class="forecast-icon">
+                                <div class="forecast-temp">26°C</div>
+                                <div class="forecast-desc">Hujan</div>
+                                <div class="forecast-temp-range"><i class="fas fa-arrow-up"></i> 29° <i class="fas fa-arrow-down"></i> 23°</div>
+                            </div>
+                            <div class="forecast-card">
+                                <div class="forecast-day">Rabu</div>
+                                <div class="forecast-date" style="color: #999; font-size: 0.85em; margin-bottom: 8px;">Mei 28</div>
+                                <img src="https://openweathermap.org/img/wn/02d@2x.png" alt="Weather" class="forecast-icon">
+                                <div class="forecast-temp">29°C</div>
+                                <div class="forecast-desc">Sebagian Berawan</div>
+                                <div class="forecast-temp-range"><i class="fas fa-arrow-up"></i> 33° <i class="fas fa-arrow-down"></i> 26°</div>
+                            </div>
+                            <div class="forecast-card">
+                                <div class="forecast-day">Kamis</div>
+                                <div class="forecast-date" style="color: #999; font-size: 0.85em; margin-bottom: 8px;">Mei 29</div>
+                                <img src="https://openweathermap.org/img/wn/01d@2x.png" alt="Weather" class="forecast-icon">
+                                <div class="forecast-temp">30°C</div>
+                                <div class="forecast-desc">Cerah</div>
+                                <div class="forecast-temp-range"><i class="fas fa-arrow-up"></i> 34° <i class="fas fa-arrow-down"></i> 27°</div>
+                            </div>
+                            <div class="forecast-card">
+                                <div class="forecast-day">Jumat</div>
+                                <div class="forecast-date" style="color: #999; font-size: 0.85em; margin-bottom: 8px;">Mei 30</div>
+                                <img src="https://openweathermap.org/img/wn/03d@2x.png" alt="Weather" class="forecast-icon">
+                                <div class="forecast-temp">28°C</div>
+                                <div class="forecast-desc">Berawan</div>
+                                <div class="forecast-temp-range"><i class="fas fa-arrow-up"></i> 31° <i class="fas fa-arrow-down"></i> 25°</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p id="errorText"></p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p><strong style="color: #ff9800;">DEMO MODE</strong> - Gunakan API key untuk data real-time</p>
+                <p class="info-text">Powered by OpenWeatherMap API</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // Setup API Key function
+        function setupAPIKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (apiKey.length === 0) {
+                alert('Silakan masukkan API key terlebih dahulu!');
+                return;
+            }
+
+            // Store di localStorage
+            localStorage.setItem('weatherAppAPIKey', apiKey);
+            alert('✅ API key berhasil disimpan!\n\nUbah browser atau reload halaman untuk menggunakan API real-time.\n\nAtau buka file script.js dan ganti API_KEY dengan key ini.');
+        }
+
+        // Demo search - just show suggestion
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsBox = document.getElementById('suggestionsBox');
+        const popularCities = [
+            'Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Bali',
+            'Yogyakarta', 'Semarang', 'Makassar', 'Palembang', 'Batam'
+        ];
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            if (query.length === 0) {
+                suggestionsBox.classList.remove('active');
+                return;
+            }
+
+            const filtered = popularCities.filter(city => city.toLowerCase().includes(query));
+            if (filtered.length > 0) {
+                suggestionsBox.innerHTML = '';
+                suggestionsBox.classList.add('active');
+                filtered.forEach(city => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${city}, Indonesia`;
+                    div.addEventListener('click', () => {
+                        searchInput.value = `${city}, Indonesia`;
+                        suggestionsBox.classList.remove('active');
+                        alert(`✨ Demo Mode: Pencarian '${city}' berhasil!\n\nDengan API key nyata, akan tampil data cuaca real-time untuk ${city}.`);
+                    });
+                    suggestionsBox.appendChild(div);
+                });
+            }
+        });
+
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const city = searchInput.value.trim();
+            if (city.length === 0) {
+                alert('Silakan masukkan nama kota!');
+            } else {
+                alert(`✨ Demo Mode: Pencarian '${city}' berhasil!\n\nDengan API key nyata, akan tampil data cuaca real-time untuk ${city}.`);
+            }
+        });
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target !== searchInput && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
